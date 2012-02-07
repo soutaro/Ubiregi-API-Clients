@@ -1,0 +1,17 @@
+<classpath>
+  <classpathentry output="target/scala-2.9.1/classes" path="src/main/scala" kind="src"></classpathentry>
+  <classpathentry output="target/scala-2.9.1/classes" path="src/main/java" kind="src"></classpathentry>
+  <classpathentry output="target/scala-2.9.1/test-classes" path="src/test/scala" kind="src"></classpathentry>
+  <classpathentry output="target/scala-2.9.1/test-classes" path="src/test/java" kind="src"></classpathentry>
+  <classpathentry path="org.scala-ide.sdt.launching.SCALA_CONTAINER" kind="con"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/net.databinder/dispatch-http_2.9.1/jars/dispatch-http_2.9.1-0.8.7.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/net.databinder/dispatch-core_2.9.1/jars/dispatch-core_2.9.1-0.8.7.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/org.apache.httpcomponents/httpclient/jars/httpclient-4.1.2.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/org.apache.httpcomponents/httpcore/jars/httpcore-4.1.2.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/commons-logging/commons-logging/jars/commons-logging-1.1.1.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/commons-codec/commons-codec/jars/commons-codec-1.4.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/net.databinder/dispatch-futures_2.9.1/jars/dispatch-futures_2.9.1-0.8.7.jar" kind="lib"></classpathentry>
+  <classpathentry path="/Users/mizushima/.ivy2/cache/net.databinder/dispatch-json_2.9.1/jars/dispatch-json_2.9.1-0.8.7.jar" kind="lib"></classpathentry>
+  <classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"></classpathentry>
+  <classpathentry path="bin" kind="output"></classpathentry>
+</classpath>
