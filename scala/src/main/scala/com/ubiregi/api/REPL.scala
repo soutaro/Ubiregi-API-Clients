@@ -33,41 +33,73 @@ object REPL {
   val Token    = """^token (.*)""".r
   val Endpoint = """^endpoint (.*)""".r
   val Exit     = """^(quit|exit).*""".r
-  val Connect  = """^connect.*""".r
-  val Request  = """^request (.*)""".r
+  val Connect  = """^(c|connect).*""".r
+  val UpdateOrNewCashier = """^(update|new)_cashier (.*)""".r
   
+  private def help():Unit = {
+    println("available commands:")
+    println("""| > secret [secret]
+               | > token [token]
+               | > endpoint [endpoint]
+               | > show
+               | > c|connect
+               | > exit
+               | ! disconnect
+               | ! update_cashier <json_file_path>
+               | ! new_cashier <json_file_path>
+               | ! <request> """.stripMargin)
+  }
+  
+  private def show():Unit = {
+    println("secret = " + secret)
+    println("token = " + token)
+    println("endpoint = " + endpoint)
+  }
+  
+  private def secretCommand(newSecret: String):Unit = {
+    secret = newSecret
+    println("set secret = " + newSecret)
+  }
+  
+  private def tokenCommand(newToken: String): Unit = {
+    token = newToken
+    println("set token = " + newToken)
+  }
+  
+  private def endpointCommand(newEndpoint: String): Unit = {
+    endpoint = newEndpoint
+    println("set endpoint = " + newEndpoint)
+  }
+  
+  private def updateOrNewCashier(jsonFilePath: String): Unit = {
+    val encoder = new BASE64Encoder()
+    val jsonString = openStream(jsonFilePath){in =>
+      val bytes = readBytes(in)
+      val iconBase64 = encoder.encodeBuffer(bytes)
+      new String(bytes, "UTF-8")
+    }
+    printf("response: %s%n", client._post("accounts/current/cashiers", jsonString))
+  }
+   
   private def repl(prompt: String): Unit = {
     val line = Console.readLine(prompt + " ").trim()
     line match {
       case Help() =>
-        println("available commands:")
-        println("""| > secret [secret]
-                   | > token [token]
-                   | > endpoint [endpoint]
-                   | > show
-                   | > connect
-                   | > exit
-                   | ! disconnect
-                   | ! <request> """.stripMargin)
+        help()
         repl(prompt)
       case Show() =>
-        println("secret = " + secret)
-        println("token = " + token)
-        println("endpoint = " + endpoint)
+        show()
         repl(prompt)
       case Secret(newSecret) =>
-        secret = newSecret
-        println("set secret = " + newSecret)
+        secretCommand(newSecret)
         repl(prompt)
       case Token(newToken) =>
-        token = newToken
-        println("set token = " + newToken)
+        tokenCommand(newToken)
         repl(prompt)
       case Endpoint(newEndpoint) =>
-        endpoint = newEndpoint
-        println("set endpoint = " + newEndpoint)
+        endpointCommand(newEndpoint)
         repl(prompt)
-      case Connect() =>
+      case Connect(_) =>
         client = new UbiregiClient(secret, token, endpoint)
         repl("!")
       case Exit(_) =>
@@ -75,21 +107,19 @@ object REPL {
         client.shutdown()
         client = null
         return
-      case line if line != "disconnect" && prompt == "!" =>
-        val result = client.processRequest(line.stripLineEnd)
-        printf("response: %s%n", result)
-        repl(prompt)
-      case "disconnect" if prompt == "!" =>
-        repl(">")
+      case UpdateOrNewCashier(_, jsonFilePath) =>
+        updateOrNewCashier(jsonFilePath)
       case line =>
-        Console.err.printf("unknown command'%s'", line)
+        if(prompt == "!")
+          printf("response: %s%n", client.processRequest(line.stripLineEnd))
+        else
+          Console.err.printf("unknown command '%s' %n", line)
         repl(prompt)
     }
   }
   
-  
   def main(args: Array[String]){
-    val (options, value) = parseOptions(args.toList)
+    val (options, _) = parseOptions(args.toList)
     secret = options.get("SECRET").getOrElse("nothing")
     token = options.get("TOKEN").getOrElse("nothing")
     endpoint = options.get("ENDPOINT").getOrElse(ENDPOINT_URL)

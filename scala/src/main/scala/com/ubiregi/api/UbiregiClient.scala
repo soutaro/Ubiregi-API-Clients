@@ -23,10 +23,16 @@ class UbiregiClient(val secret: String, val token: String, val endpoint: String)
     "X-Ubiregi-App-Secret" -> secret
   )
     
-  def accounts(block: StringMap => Any = null, id: Int = 1): Map[String, List[Any]] = {
+  def accounts(block: StringMap => Any = null, id: String = "1"): Map[String, List[Any]] = {
     val response = _get("accounts/"+id)
     if (block != null) block(response)
     response("account").asInstanceOf[Map[String, List[String]]]
+  }
+  
+  def cashiers(block: Any => Any = null, id: String = "1"): Any = {
+    val response = _post("accounts/"+id+"/cashiers", toJsonString(Map[Any, Any]()))
+    if (block != null) block(response)
+    response
   }
     
   def menuItems(menuId: String)(implicit block: StringMap => Any = null): Any = {
@@ -66,23 +72,26 @@ class UbiregiClient(val secret: String, val token: String, val endpoint: String)
     val urlOrPath = if (urlOrPathInit.matches("""^http.*""")) urlOrPathInit else endpoint + urlOrPathInit
     Console.err.print("Sending POST request to " + urlOrPath + " ...")
     val headers = defaultHeaders + ("Content-Type" -> "application/json") ++ extHeaders
-    val result = client((url(urlOrPath).POST << (content.toString()) <:< headers) >- (json => JSON.parseRaw(json)))
-    Console.err.println("Done")
+    val result = client((url(urlOrPath).POST << (content.toString()) <:< headers) >- (json => JSON.parseFull(json).get))
+    result
   }
   def processRequest(command: String): String = {
-    val ACCOUNTS = """accounts/([0-9]+)""".r
+    val ACCOUNTS = """accounts/([0-9]+|current)""".r
     val MENUS_MENUIDS_ITEMS = """menus/([0-9]+)/items""".r
     val CHECKOUTS = """checkouts""".r
     val MENU_CATEGORIES = """menus/([0-9]+)/categories""".r
+    val CASHIERS = """accounts/([0-9]+|current)/cashiers""".r
     toJsonString(command match {
       case ACCOUNTS(idString) =>
-        accounts(id=idString.toInt)
+        accounts(id=idString)
       case MENUS_MENUIDS_ITEMS(menuId) =>
         menuItems(menuId)
       case CHECKOUTS() =>
         checkouts()
       case MENU_CATEGORIES(menuId) =>
         menuCategories(menuId)
+      case CASHIERS(idString) =>
+        cashiers(id=idString)
     })
   }
 }
