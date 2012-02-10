@@ -7,6 +7,7 @@ package object api {
   type RequestHeader = Map[String, String]
   type BASE64Encoder = sun.misc.BASE64Encoder
   type BASE64Decoder = sun.misc.BASE64Decoder
+  type ==>[-A, +B] = PartialFunction[A, B]
   def toJsonString(value: Any): String = value match {
     case null => "null"
     case o:Map[String, _] => "{" + o.map{case (k, v) => toJsonString(k) + ":" + toJsonString(v)}.mkString(",") + "}"

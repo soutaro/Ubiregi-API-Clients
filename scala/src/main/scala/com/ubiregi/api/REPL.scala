@@ -1,4 +1,5 @@
 package com.ubiregi.api
+import java.io.File
 
 /*
  * REPL for testing ubiregi api version 3
@@ -34,7 +35,8 @@ object REPL {
   val Endpoint = """^endpoint (.*)""".r
   val Exit     = """^(quit|exit).*""".r
   val Connect  = """^(c|connect).*""".r
-  val UpdateOrNewCashier = """^(update|new)_cashier (.*)""".r
+  val UpdateOrNewCashier =  """^(update|new)_cashier (.*)""".r
+  val UpdateOrNewMenuItem = """^(update|new)_menu_item ([0-9]+) (.*)""".r
   
   private def help():Unit = {
     println("available commands:")
@@ -47,6 +49,8 @@ object REPL {
                | ! disconnect
                | ! update_cashier <json_file_path>
                | ! new_cashier <json_file_path>
+               | ! update_menu_item <menu_id> <json_file_path>
+               | ! new_menu_item <menu_id> <json_file_path>
                | ! <request> """.stripMargin)
   }
   
@@ -80,28 +84,35 @@ object REPL {
     }
     printf("response: %s%n", client._post("accounts/current/cashiers", jsonString))
   }
+  
+  private def updateOrNewMenuItem(menuId: String, jsonFilePath: String): Unit = {
+    val jsonString = openStream(jsonFilePath){in => new String(readBytes(in), "UTF-8") }
+    printf("response: %s%n", client._post("menus/" + menuId + "/items", jsonString))
+  }
    
-  private def repl(prompt: String): Unit = {
-    val line = Console.readLine(prompt + " ").trim()
-    line match {
+  private def repl(pwd: String, prompt: String): Unit = {
+    val line = Console.readLine(pwd + " " + prompt).trim()
+    val matcher1: String ==> Unit = {
       case Help() =>
         help()
-        repl(prompt)
+        repl(pwd, prompt)
       case Show() =>
         show()
-        repl(prompt)
+        repl(pwd, prompt)
       case Secret(newSecret) =>
         secretCommand(newSecret)
-        repl(prompt)
+        repl(pwd, prompt)
       case Token(newToken) =>
         tokenCommand(newToken)
-        repl(prompt)
+        repl(pwd, prompt)
       case Endpoint(newEndpoint) =>
         endpointCommand(newEndpoint)
-        repl(prompt)
+        repl(pwd, prompt)
       case Connect(_) =>
         client = new UbiregiClient(secret, token, endpoint)
-        repl("!")
+        repl(pwd, "!")
+    }
+    val matcher2: String ==> Unit = {
       case Exit(_) =>
         println("exit")
         client.shutdown()
@@ -109,20 +120,26 @@ object REPL {
         return
       case UpdateOrNewCashier(_, jsonFilePath) =>
         updateOrNewCashier(jsonFilePath)
+      case UpdateOrNewMenuItem(_, menuId, jsonFilePath) =>
+        updateOrNewMenuItem(menuId, jsonFilePath)
       case line =>
+        printf("[DEBUG] line = %s%n", line)
         if(prompt == "!")
           printf("response: %s%n", client.processRequest(line.stripLineEnd))
         else
           Console.err.printf("unknown command '%s' %n", line)
-        repl(prompt)
+        repl(pwd, prompt)
     }
+    val matcher = matcher1 orElse matcher2
+    matcher(line)
   }
   
-  def main(args: Array[String]){
+  def main(args: Array[String]) {
     val (options, _) = parseOptions(args.toList)
     secret = options.get("SECRET").getOrElse("nothing")
     token = options.get("TOKEN").getOrElse("nothing")
     endpoint = options.get("ENDPOINT").getOrElse(ENDPOINT_URL)
-    repl(">")
+    val pwd = new File(".").getCanonicalPath()
+    repl(pwd, ">")
   }
 }
