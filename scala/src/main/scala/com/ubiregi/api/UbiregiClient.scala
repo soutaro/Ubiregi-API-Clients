@@ -75,6 +75,9 @@ class UbiregiClient(val secret: String, val token: String, val endpoint: String)
     val result = client((url(urlOrPath).POST << (content.toString()) <:< headers) >- (json => JSON.parseFull(json).get))
     result
   }
+  def postOnAcccountCustomerTags(requestJson: String, accountId: String = "1"): Any = {
+    _post("accounts/"+accountId+"/customer_tags", requestJson)
+  }
   def processRequest(command: String): String = {
     val ACCOUNTS = """accounts/([0-9]+|current)""".r
     val MENUS_MENUIDS_ITEMS = """menus/([0-9]+)/items""".r

@@ -37,6 +37,8 @@ object REPL {
   val Connect  = """^(c|connect).*""".r
   val UpdateOrNewCashier =  """^(update|new)_cashier (.*)""".r
   val UpdateOrNewMenuItem = """^(update|new)_menu_item ([0-9]+) (.*)""".r
+  val UpdateOrNewCustomerTag = """^(update|new)_customer_tag ([0-9]+) (.*)""".r
+  
   
   private def help():Unit = {
     println("available commands:")
@@ -50,7 +52,9 @@ object REPL {
                | ! update_cashier <json_file_path>
                | ! new_cashier <json_file_path>
                | ! update_menu_item <menu_id> <json_file_path>
+               | ! update_customer_tag <account_id> <json_file_path>
                | ! new_menu_item <menu_id> <json_file_path>
+               | ! new_customer_tag <account_id> <json_file_path>
                | ! <request> """.stripMargin)
   }
   
@@ -89,6 +93,11 @@ object REPL {
     val jsonString = openStream(jsonFilePath){in => new String(readBytes(in), "UTF-8") }
     printf("response: %s%n", client._post("menus/" + menuId + "/items", jsonString))
   }
+  
+  private def updateOrNewCustomerTag(accountId: String, jsonFilePath: String): Unit = {
+    val jsonString = openStream(jsonFilePath){in => new String(readBytes(in), "UTF-8") }
+    printf("response: %s%n", client.postOnAcccountCustomerTags(jsonString, accountId))
+  }
    
   private def repl(pwd: String, prompt: String): Unit = {
     val line = Console.readLine(pwd + " " + prompt).trim()
@@ -122,6 +131,8 @@ object REPL {
         updateOrNewCashier(jsonFilePath)
       case UpdateOrNewMenuItem(_, menuId, jsonFilePath) =>
         updateOrNewMenuItem(menuId, jsonFilePath)
+      case UpdateOrNewCustomerTag(_, accountId, jsonFilePath) =>
+        updateOrNewCustomerTag(accountId, jsonFilePath)
       case line =>
         printf("[DEBUG] line = %s%n", line)
         if(prompt == "!")
