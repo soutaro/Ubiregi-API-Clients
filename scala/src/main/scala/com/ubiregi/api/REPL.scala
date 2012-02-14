@@ -5,7 +5,7 @@ import java.io.File
  * REPL for testing ubiregi api version 3
  */
 object REPL {
-  private final val ENDPOINT_URL = "http://localhost:3000/api/3/"
+  private final val ENDPOINT_URL = "https://ubiregi.com/api/3/"
   private final val LOGIN_URL = "%s/api/2/auth/" format (ENDPOINT_URL)
   private final val STATUS_URL = ENDPOINT_URL + "%s/status?since=%s"
   private final val REPORT_URL = ENDPOINT_URL + "%s/report"
@@ -38,7 +38,7 @@ object REPL {
   val UpdateOrNewCashier =  """^(update|new)_cashier (.*)""".r
   val UpdateOrNewMenuItem = """^(update|new)_menu_item ([0-9]+) (.*)""".r
   val UpdateOrNewCustomerTag = """^(update|new)_customer_tag ([0-9]+) (.*)""".r
-  
+  val UpdateOrNewCategory = """^(update|new)_category ([0-9]+) (.*)""".r
   
   private def help():Unit = {
     println("available commands:")
@@ -55,6 +55,8 @@ object REPL {
                | ! update_customer_tag <account_id> <json_file_path>
                | ! new_menu_item <menu_id> <json_file_path>
                | ! new_customer_tag <account_id> <json_file_path>
+               | ! new_category <menu_id> <json_file_path>
+               | ! update_category <menu_id> <json_file_path>
                | ! <request> """.stripMargin)
   }
   
@@ -98,6 +100,11 @@ object REPL {
     val jsonString = openStream(jsonFilePath){in => new String(readBytes(in), "UTF-8") }
     printf("response: %s%n", client.postOnAcccountCustomerTags(jsonString, accountId))
   }
+  
+  private def updateOrNewCategory(menuId: String, jsonFilePath: String): Unit = {
+    val jsonString = openStream(jsonFilePath){in => new String(readBytes(in), "UTF-8") }
+    printf("response: %s%n", client._post("menus/" + menuId + "/categories", jsonString))
+  }
    
   private def repl(pwd: String, prompt: String): Unit = {
     val line = Console.readLine(pwd + " " + prompt).trim()
@@ -133,6 +140,8 @@ object REPL {
         updateOrNewMenuItem(menuId, jsonFilePath)
       case UpdateOrNewCustomerTag(_, accountId, jsonFilePath) =>
         updateOrNewCustomerTag(accountId, jsonFilePath)
+      case UpdateOrNewCategory(_, menuId, jsonFilePath) => 
+        updateOrNewCategory(menuId, jsonFilePath)
       case line =>
         printf("[DEBUG] line = %s%n", line)
         if(prompt == "!")
