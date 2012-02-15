@@ -46,6 +46,10 @@ class UbiregiClient(val secret: String, val token: String, val endpoint: String)
   def checkouts(implicit block: StringMap => Any = null): Any = {
     _index("checkouts", "checkouts", acc=List(), block)
   }
+  
+  def stockEvents(implicit block: StringMap => Any = null, id: String = "1"): Any = {
+    _index("accounts/"+id+"/stocks/events", "events", acc=List(), block)
+  }
     
   def postCheckouts(checkouts: List[StringMap]): Any = {
     _post("checkouts", toJsonString(Map("checkouts" -> checkouts)))
@@ -84,6 +88,7 @@ class UbiregiClient(val secret: String, val token: String, val endpoint: String)
     val CHECKOUTS = """checkouts""".r
     val MENU_CATEGORIES = """menus/([0-9]+)/categories""".r
     val CASHIERS = """accounts/([0-9]+|current)/cashiers""".r
+    val STOCK_EVENTS = """accounts/([0-9]+|current)/stocks/events""".r
     toJsonString(command match {
       case ACCOUNTS(idString) =>
         accounts(id=idString)
@@ -95,6 +100,10 @@ class UbiregiClient(val secret: String, val token: String, val endpoint: String)
         menuCategories(menuId)
       case CASHIERS(idString) =>
         cashiers(id=idString)
+      case STOCK_EVENTS(idString) =>
+        val result = stockEvents(id=idString)
+        println("result ====== " + result)
+        result
     })
   }
 }
