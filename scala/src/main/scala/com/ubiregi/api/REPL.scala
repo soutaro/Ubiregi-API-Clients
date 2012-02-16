@@ -164,6 +164,7 @@ object REPL {
   }
   
   def main(args: Array[String]) {
+
     val (options, _) = parseOptions(args.toList)
     secret = options.get("SECRET").getOrElse("nothing")
     token = options.get("TOKEN").getOrElse("nothing")
